@@ -1,0 +1,96 @@
+import sys
+import os
+from PyQt5.QtWidgets import QWidget,QApplication,QTextEdit,QLabel,QPushButton,QVBoxLayout,QFileDialog,QHBoxLayout
+
+from PyQt5.QtWidgets import QAction,qApp,QMainWindow
+
+class Pencere(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+
+
+        self.temizle=QPushButton("Temizle")
+        self.dosya_ac=QPushButton("Dosya Aç")
+        self.dosya_kaydet=QPushButton("Dosya Kaydet")
+        self.yazialani=QTextEdit("")
+
+        h_box=QHBoxLayout()
+        h_box.addWidget(self.temizle)
+        h_box.addWidget(self.dosya_ac)
+        h_box.addWidget(self.dosya_kaydet)
+
+        v_box=QVBoxLayout()
+        v_box.addWidget(self.yazialani)
+        v_box.addLayout(h_box)
+
+        self.setLayout(v_box)
+
+
+        self.temizle.clicked.connect(self.temizleme)
+        self.dosya_ac.clicked.connect(self.acma)
+        self.dosya_kaydet.clicked.connect(self.dosya_kaydetme)
+
+    def temizleme(self):
+        self.yazialani.clear()
+    def acma(self):
+        data=QFileDialog.getOpenFileName(self,"Dosya Aç",os.getenv("HOME"))
+        with open (data[0],"r") as file:
+            self.yazialani.setText(file.read())
+    def dosya_kaydetme(self):
+        data=QFileDialog.getSaveFileName(self,"Dosya Kaydet",os.getenv("HOME"))
+        with open(data[0],"w") as file:
+            file.write(self.yazialani.toPlainText())
+
+class Menu(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+        self.pencere=Pencere()
+        self.setCentralWidget(self.pencere)
+        self.menuleri_olustur()
+
+    def menuleri_olustur(self):
+
+        menubar=self.menuBar()
+        dosya=menubar.addMenu("Dosya")
+        
+        dosya_ac=QAction("Dosya Aç",self)
+        dosya_kaydet=QAction("Dosya Kaydet",self)
+        temizle=QAction("Temizle",self)
+        cikis=QAction("Çıkış",self)
+
+        dosya_ac.setShortcut("Ctrl+O")
+        dosya_kaydet.setShortcut("Ctrl+S")
+        temizle.setShortcut("Ctrl+W")
+        cikis.setShortcut("Ctrl+Q")
+
+        dosya.addAction(dosya_ac)
+        dosya.addAction(dosya_kaydet)
+        dosya.addAction(temizle)
+        dosya.addAction(cikis)
+        self.setWindowTitle("NotePad")
+        dosya.triggered.connect(self.response)
+
+                
+        self.show()
+    def response(self,action):
+        if action.text()=="Dosya Aç":
+            self.pencere.acma()
+        elif action.text()=="Dosya Kaydet":
+            self.pencere.dosya_kaydetme()
+        elif action.text()=="Temizle":
+            self.pencere.temizleme()
+        elif action.text()=="Çıkış":
+            print("Çıkış Yapıldı")
+            qApp.quit()
+
+
+
+    
+
+app=QApplication(sys.argv)
+menu=Menu()
+sys.exit(app.exec_())
