@@ -1,0 +1,93 @@
+from PyQt5.QtWidgets import QWidget,QApplication,QTextEdit,QLabel,QPushButton,QVBoxLayout,QFileDialog,QHBoxLayout,QLineEdit
+from PyQt5.QtWidgets import QAction,qApp,QMainWindow
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import sys
+
+class Pencere(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+    def init_ui(self):
+        self.gonder=QPushButton("Gönder")
+        self.kullanici_adi=QLabel("E-Posta Adresiniz:")
+        self.sifre=QLabel("E-Posta Şifreniz:")
+        self.alici=QLabel("Gönderilen E-Posta Adresi:")
+        self.konu=QLabel("Mailin Konusu:")
+        self.mesaj=QLabel("Gönderilecek Mesaj:")
+        self.kullanici_adi_line=QLineEdit()
+        self.sifre_line=QLineEdit()
+        self.alici_line=QLineEdit()
+        self.konu_line=QLineEdit()
+        self.mesaj_line=QTextEdit()
+
+        h_box=QHBoxLayout()
+        h_box.addWidget(self.kullanici_adi)
+        h_box.addWidget(self.kullanici_adi_line)
+
+        h2_box=QHBoxLayout()
+        h2_box.addWidget(self.sifre)
+        h2_box.addWidget(self.sifre_line)
+
+        h3_box=QHBoxLayout()
+        h3_box.addWidget(self.alici)
+        h3_box.addWidget(self.alici_line)
+
+        h4_box=QHBoxLayout()
+        h4_box.addWidget(self.konu)
+        h4_box.addWidget(self.konu_line)
+
+
+        v_box=QVBoxLayout()
+        v_box.addLayout(h_box)
+        v_box.addLayout(h2_box)
+        v_box.addLayout(h3_box)
+        v_box.addLayout(h4_box)
+        v_box.addWidget(self.mesaj)
+        v_box.addWidget(self.mesaj_line)
+        v_box.addWidget(self.gonder)
+
+        self.setWindowTitle("Mail Gönderme")
+
+        self.setLayout(v_box)
+        self.gonder.clicked.connect(self.gonderme)
+
+        self.show()
+
+    def gonderme(self):
+        gonderen=self.kullanici_adi_line.text()
+        parola=self.sifre_line.text()
+        alan=self.alici_line.text()
+        mesaj_konu=self.konu_line.text()
+        mesaj_icerik= self.mesaj_line.toPlainText()
+
+        
+        
+        mesaj_mime=MIMEMultipart()
+        mesaj_mime["From"]=gonderen
+        mesaj_mime["To"]=alan
+        mesaj_mime["Subject"]=mesaj_konu
+
+        govde=MIMEText(mesaj_icerik,"plain")
+
+        mesaj_mime.attach(govde)
+
+        try:
+            mail=smtplib.SMTP("smtp.gmail.com",587)
+            mail.ehlo()
+            mail.starttls()
+            mail.login(gonderen,parola)
+            mail.sendmail(mesaj_mime["From"],mesaj_mime["To"],mesaj_mime.as_string())
+            mail.close()
+        except:
+            sys.stderr.write("Lütfen bilgilerinizi yeniden kontrol ediniz.")
+            sys.stderr.flush()
+
+        
+
+
+app=QApplication(sys.argv)
+pencere=Pencere()
+sys.exit(app.exec_())
+        
