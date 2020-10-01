@@ -1,0 +1,67 @@
+import sys
+import os
+from PyQt5.QtWidgets import QWidget,QApplication,QTextEdit,QLabel,QPushButton,QVBoxLayout,QFileDialog,QHBoxLayout,QLineEdit
+from PyQt5.QtWidgets import QAction,qApp,QMainWindow
+import requests
+
+
+
+class Pencere(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+
+        self.cevir=QPushButton("Çevir")
+        self.birinci_doviz=QLineEdit()
+        self.ikinci_doviz=QLineEdit()
+        self.miktar=QLineEdit()
+        self.sonuc=QLabel("")
+        
+        self.yazialani1=QLabel("Şu para biriminden:")
+        self.yazialani2=QLabel("Şu para birimine:")
+        self.yazialani3=QLabel("Girmek istediğiniz miktar ?")
+
+        
+        h_box=QHBoxLayout()
+        h_box.addWidget(self.yazialani1)
+        h_box.addWidget(self.birinci_doviz)
+
+        h2_box=QHBoxLayout()
+        h2_box.addWidget(self.yazialani2)
+        h2_box.addWidget(self.ikinci_doviz)
+
+        h3_box=QHBoxLayout()
+        h3_box.addWidget(self.yazialani3)
+        h3_box.addWidget(self.miktar)
+        
+
+        v_box=QVBoxLayout()
+        v_box.addLayout(h_box)
+        v_box.addLayout(h2_box)
+        v_box.addLayout(h3_box)
+        v_box.addWidget(self.sonuc)
+        v_box.addWidget(self.cevir)
+
+        self.setWindowTitle("Döviz Programı")
+        self.cevir.clicked.connect(self.cevirme)
+
+        
+        self.setLayout(v_box)
+
+        self.show()
+
+
+    def cevirme(self):
+        response=requests.get("http://data.fixer.io/api/latest?access_key=fabc3b0e44861706ee1bf45bf3e60a09")
+        kodjson=response.json()
+
+        sonuc=(kodjson["rates"][self.ikinci_doviz.text()]/kodjson["rates"][self.birinci_doviz.text()])*float((self.miktar.text()))
+        
+        self.sonuc.setText(self.miktar.text()+" "+ self.birinci_doviz.text()+" " +str(sonuc)+" " + self.ikinci_doviz.text()+ "'dir")
+        
+
+app=QApplication(sys.argv)
+pencere=Pencere()
+sys.exit(app.exec_())
