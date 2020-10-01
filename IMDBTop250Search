@@ -1,0 +1,95 @@
+import requests
+from bs4 import BeautifulSoup
+import sys
+from PyQt5.QtWidgets import QWidget,QApplication,QTextEdit,QLabel,QPushButton,QVBoxLayout,QFileDialog,QHBoxLayout,QLineEdit
+from PyQt5.QtWidgets import QAction,qApp,QMainWindow
+from PyQt5 import QtGui
+
+
+
+class Pencere(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+
+        self.sorgula=QPushButton("Sorgula")
+        self.sirala=QPushButton("Sırala")
+        self.film_adi=QLineEdit()
+        self.rating=QLineEdit()
+        self.yazialani=QLabel("")
+        self.film_adi_label=QLabel("Aramak istediğiniz filmi giriniz:")
+        self.rating_label=QLabel("Hangi ratingten üstünü aramak istersiniz?")
+
+        h_box=QHBoxLayout()
+        h_box.addWidget(self.film_adi_label)
+        h_box.addWidget(self.film_adi)
+        
+
+        h2_box=QHBoxLayout()
+        h2_box.addWidget(self.rating_label)
+        h2_box.addWidget(self.rating)
+        
+
+        h3_box=QHBoxLayout()
+        h3_box.addWidget(self.sorgula)
+        h3_box.addWidget(self.sirala)
+
+        v_box=QVBoxLayout()
+        v_box.addLayout(h_box)
+        v_box.addLayout(h2_box)
+        v_box.addWidget(self.yazialani)
+        v_box.addLayout(h3_box)
+        self.sorgula.clicked.connect(self.sorgulama)
+        self.sirala.clicked.connect(self.siralama)
+
+        
+        
+        self.setWindowTitle("Film Sorgulama")
+        self.setLayout(v_box)
+        self.show()
+
+    def sorgulama(self):
+        url="https://www.imdb.com/chart/top/"
+        response=requests.get(url)
+        html_content=response.content
+        soup=BeautifulSoup(html_content,"html.parser")
+        movie_name = soup.find_all("td",{"class":"titleColumn"})
+        ratings = soup.find_all("td",{"class","ratingColumn imdbRating"})
+
+        for i,j in zip(movie_name,ratings):
+            a=i.find("a").get_text(strip=True)
+            b=j.find("strong").get_text(strip=True)
+            if a==self.film_adi.text():
+                    i=i.text
+                    i=i.strip()
+                    i=i.replace("\n","")
+                    self.yazialani.setText("Film Bilgileri "+i+" Imdb Rating'i " + b) 
+
+    def siralama(self):
+        url="https://www.imdb.com/chart/top/"
+        response=requests.get(url)
+        html_content=response.content
+        soup=BeautifulSoup(html_content,"html.parser")
+        movie_name = soup.find_all("td",{"class":"titleColumn"})
+        ratings = soup.find_all("td",{"class","ratingColumn imdbRating"})
+        q=self.rating.text()
+
+        for i,j in zip(movie_name,ratings):
+            i=i.text
+            j=j.text
+            
+            i=i.strip()
+            j=j.strip()
+
+            i=i.replace("\n","")
+            j=j.replace("\n","")
+            if (float(j)>float(q)):
+                print("Filmin Adı:",i,"Filmin Puanı:",j)
+                print("***********************************")
+                                
+
+app=QApplication(sys.argv)
+pencere=Pencere()
+sys.exit(app.exec_())
