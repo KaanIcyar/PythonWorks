@@ -1,0 +1,63 @@
+import sys
+import sqlite3
+from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtWidgets import QMainWindow, QLabel
+from PyQt5.QtWidgets import QGridLayout, QWidget, QDesktopWidget
+
+
+
+class Kullanici(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+        self.baglanti_olustur()
+
+    def baglanti_olustur(self):
+        self.con=sqlite3.connect("users.db")   #it connects users database
+        self.cursor=self.con.cursor()
+        self.cursor.execute("create table if not exists users(kullanici_adi TEXT,sifre TEXT)")
+        self.con.commit()
+
+
+
+    def init_ui(self):
+        self.kullanici_adi=QtWidgets.QLineEdit()
+        self.dogrulama=QtWidgets.QLabel("")
+        self.sifre=QtWidgets.QLineEdit()
+        self.sifre.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.giris=QtWidgets.QPushButton("Giriş Yap")
+        self.setWindowTitle("Kullanıcı Girişi")
+        self.setGeometry(520,350,400,400)
+
+        v_box=QtWidgets.QVBoxLayout()
+        v_box.addWidget(self.kullanici_adi)
+        v_box.addWidget(self.sifre)
+        v_box.addWidget(self.dogrulama)
+        v_box.addWidget(self.giris)
+
+        h_box=QtWidgets.QHBoxLayout()
+        h_box.addStretch()
+        h_box.addLayout(v_box)
+        h_box.addStretch()
+
+        self.setLayout(h_box)
+        qtRectangle = self.frameGeometry()
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        qtRectangle.moveCenter(centerPoint)
+        self.move(qtRectangle.topLeft())
+        self.show()
+
+    def kontrol(self):
+        kul=self.kullanici_adi.text()
+        par=self.sifre.text()
+        self.cursor.execute("select * from users where kullanici_adi=? and sifre=? ",(kul,par))
+        data=self.cursor.fetchall()
+        if(len(data)==0):
+            self.dogrulama.setText("Böyle bir kullanıcı bulunamadı.")
+        else:
+            self.dogrulama.setText("Sisteme hosgeldiniz " + str(kul))
+
+
+app=QtWidgets.QApplication(sys.argv)
+kullanici=Kullanici()
+sys.exit(app.exec_())
